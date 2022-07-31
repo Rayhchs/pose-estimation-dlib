@@ -19,6 +19,7 @@ This repo provide a simple pose estimation code using dlib. Before using the pro
       python -m main
 
 * Arguments
+
  | Keyboard arguments | Description |
  | ------------- | ------------- |
  | s | start program |
