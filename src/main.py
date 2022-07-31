@@ -24,25 +24,18 @@ def main():
             break
         if keycode == ord('s') and state == 0:
             state = 1
-        if keycode == ord('r') and state == 1:
+        if keycode == ord('v') and state == 1:
             state = 2
-        if keycode == ord('v') and state == 3:
-            state = 4
-        if keycode == ord('p') and state == 4:
-            state = 3
+        if keycode == ord('p') and state == 2:
+            state = 1
 
         # Interaction
         if state == 0:
             frame = user_command.open()
         elif state == 1:
-            frame = user_command.start()
+            frame = user_command.pose_estimation(detector, predictor)
         elif state == 2:
-            reg_point = user_command.registration(detector, predictor)
-            state = 3
-        elif state == 3:
-            frame = user_command.pose_estimation(reg_point, detector, predictor)
-        elif state == 4:
-            frame = user_command.pose_estimation(reg_point, detector, predictor, count, if_record=True)
+            frame = user_command.pose_estimation(detector, predictor, count, if_record=True)
             count += 1
 
         cv2.imshow("Pose Estimation", frame)

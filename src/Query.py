@@ -15,43 +15,7 @@ class Query():
         cv2.putText(self.frame, '----- Press "q" to quit  -----', (int(self.size[1]/2-200), self.size[0]-5), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
         return self.frame
 
-    def start(self):
-
-        cv2.putText(self.frame, '-----     Registrating Your Face    -----', (int(self.size[1]/2-270), int(self.size[0]/2)), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(self.frame, '----- Please show your frontal face -----', (int(self.size[1]/2-270), int(self.size[0]/2+20)), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-        cv2.putText(self.frame, '---- Press "r" for face registration ----', (int(self.size[1]/2-250), int(self.size[0]-20)), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-        return self.frame
-
-        
-    def registration(self, detector, predictor):
-        
-        reg_frame = self.frame
-        cv2.putText(self.frame, '----- Recording -----', (int(self.size[0]/2+250), int(self.size[1]/2+40)), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-
-        ps = []
-        rects = detector(reg_frame, 0)
-        for i in range(len(rects)):
-            landmarks = np.matrix([[p.x, p.y] for p in predictor(reg_frame,rects[i]).parts()])
-            for idx, point in enumerate(landmarks):
-
-                # 68 points
-                pos = (point[0, 0], point[0, 1])
-                ps.append(pos)
-
-        if not len(ps) == 0:
-            # Find 2D face points
-            image_points = np.array([
-                                    ps[30],     # Nose tip
-                                    ps[8],      # Chin
-                                    ps[36],     # Left eye left corner
-                                    ps[45],     # Right eye right corner
-                                    ps[48],    # Left mouth corner
-                                    ps[54]     # Right mouth corner
-                                ], dtype="double")
-            return image_points
-
-
-    def pose_estimation(self, reg_point, detector, predictor, count=0, if_record=False):
+    def pose_estimation(self, detector, predictor, count=0, if_record=False):
 
         origin_frame = self.frame.copy()
         cv2.putText(self.frame, '----- Press "v" to record -----', (int(self.size[1]/2-200), self.size[0]-25), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
@@ -92,15 +56,13 @@ class Query():
                                 ], dtype="double")
 
             # 3D model points.
-            model_points = np.array([
-                                        (reg_point[0][0], reg_point[0][1], 0.0),             # Nose tip
-                                        (reg_point[1][0], reg_point[1][1], -65.0),        # Chin
-                                        (reg_point[2][0], reg_point[2][1], -135.0),     # Left eye left corner
-                                        (reg_point[3][0], reg_point[3][1], -135.0),      # Right eye right corne
-                                        (reg_point[4][0], reg_point[4][1], -125.0),    # Left Mouth corner
-                                        (reg_point[5][0], reg_point[5][1], -125.0)      # Right mouth corner
+            model_points = np.array([(0.0, 0.0, 0.0),
+                                    (0.0, -300.0, -65.0),
+                                    (-150.0, 170.0, -135.0),
+                                    (150.0, 170.0, -135.0),
+                                    (-150.0, -150.0, -125.0),
+                                    (150.0, -150.0, -125.0)])
 
-                                    ])
             for p in image_points:
                 cv2.circle(self.frame, (int(p[0]), int(p[1])), 3, (0,0,255), -1)
 
@@ -113,9 +75,9 @@ class Query():
             angle = r.as_euler('zyx', degrees=True) # calculate euler angle
 
             # Print text to image
-            cv2.putText(self.frame, 'x: '+str(angle[0]), (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-            cv2.putText(self.frame, 'y: '+str(angle[1]), (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-            cv2.putText(self.frame, 'z: '+str(angle[2]), (0, 60), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(self.frame, 'x: '+ str(round(angle[0],2)), (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(self.frame, 'y: '+ str(round(angle[1],2)), (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+            cv2.putText(self.frame, 'z: '+ str(round(angle[2],2)), (0, 60), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
 
         # Exclude multi-face
         elif len(ps) > 69:
@@ -132,9 +94,9 @@ class Query():
                     cv2.circle(origin_frame, (int(p[0]), int(p[1])), 3, (0,0,255), -1)
 
                 # Print text to image
-                cv2.putText(origin_frame, 'x: '+str(angle[0]), (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-                cv2.putText(origin_frame, 'y: '+str(angle[1]), (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
-                cv2.putText(origin_frame, 'z: '+str(angle[2]), (0, 60), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+                cv2.putText(origin_frame, 'x: '+ str(round(angle[0],2)), (0, 20), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+                cv2.putText(origin_frame, 'y: '+ str(round(angle[1],2)), (0, 40), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
+                cv2.putText(origin_frame, 'z: '+ str(round(angle[2],2)), (0, 60), cv2.FONT_HERSHEY_DUPLEX, 0.7, (255, 255, 255), 1, cv2.LINE_AA)
             
             self.record(count, origin_frame)
 
